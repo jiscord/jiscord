@@ -7,6 +7,7 @@ import imgui.app.Application;
 import imgui.app.Configuration;
 import imgui.callback.ImGuiInputTextCallback;
 import imgui.flag.ImGuiInputTextFlags;
+import imgui.type.ImBoolean;
 import imgui.type.ImString;
 import site.lifix.jiscord.api.SocketClient;
 import site.lifix.jiscord.api.easeofuse.JsonObjectEOU;
@@ -19,6 +20,7 @@ import site.lifix.jiscord.ui.elements.impl.ServerListElement;
 import site.lifix.jiscord.ui.elements.impl.UserListElement;
 import site.lifix.jiscord.ui.images.ImageCache;
 import site.lifix.jiscord.ui.notifications.NotificationManager;
+import site.lifix.jiscord.utility.CustomImGui;
 import site.lifix.jiscord.utility.Utility;
 
 import java.util.ArrayList;
@@ -32,6 +34,8 @@ public class Main extends Application {
     public static UserListElement userListElement = new UserListElement();
 
     private static final ImString tokenInput = new ImString();
+
+    public static ImBoolean printFullJsonMessages = new ImBoolean(false);
 
     private static void jsonTree(String name, JsonElement obj) {
         if (ImGui.treeNode(name)) {
@@ -112,67 +116,72 @@ public class Main extends Application {
                 ImGui.getIO());
 
         ImGui.text("Hello, World!");
-        Fonts.useFont(Fonts.productSansRegular30px, () -> {
-            ImGui.text("This should be in Product Sans Regular 30px.");
+
+        CustomImGui.titledGroup("Debug", () -> {
+            if (ImGui.button("Short notification")) {
+                NotificationManager.push("Short notification", "Content here");
+            }
+
+            if (ImGui.button("Long notification")) {
+                NotificationManager.push("Long notification", "Lorem ipsum dolor sit amet, " +
+                        " adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim" +
+                        " ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo" +
+                        " consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu" +
+                        " fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui" +
+                        " officia deserunt mollit anim id est laborum.");
+            }
+
+            ImGui.checkbox("Print full JSON data on message", printFullJsonMessages);
         });
 
-        if (ImGui.button("Short notification")) {
-            NotificationManager.push("Short notification", "Content here");
-        }
-
-        if (ImGui.button("Long notification")) {
-            NotificationManager.push("Long notification", "Lorem ipsum dolor sit amet, " +
-                    " adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad" +
-                    " minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo" +
-                    " consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu" +
-                    " fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui" +
-                    " officia deserunt mollit anim id est laborum.");
-        }
-
-        if (ImGui.inputText("Token input (enter to login)", tokenInput, ImGuiInputTextFlags.EnterReturnsTrue)) {
-            if (tokenInput.get().length() > 60) {
-                SocketClient.launch(tokenInput.get());
-            }
-        }
-
-        if (ImGui.collapsingHeader("Packets sent")) {
-            List<JsonObjectEOU> safePacketList = new ArrayList<>(SocketClient.sentPacketList);
-
-            int x = 1;
-            for (JsonObjectEOU obj : safePacketList) {
-                String name = "Packet #";
-                name += x;
-                if (obj.has("op") || obj.has("t")) {
-                    int op = obj.get("op", Integer.class, -1);
-                    name += " (Opcode: ";
-                    name += Utility.namedGatewayOpcode(op);
-                    name += ")";
+        CustomImGui.titledGroup("Login", () -> {
+            if (ImGui.inputText("Token input (enter to login)", tokenInput, ImGuiInputTextFlags.EnterReturnsTrue)) {
+                if (tokenInput.get().length() > 60) {
+                    SocketClient.launch(tokenInput.get());
                 }
-                jsonTree(name, obj.getNativeObject());
-                x++;
             }
-        }
+        });
 
-        if (ImGui.collapsingHeader("Packets received")) {
-            List<JsonObjectEOU> safePacketList = new ArrayList<>(SocketClient.packetList);
+        CustomImGui.titledGroup("Packets", () -> {
+            if (ImGui.collapsingHeader("Packets sent")) {
+                List<JsonObjectEOU> safePacketList = new ArrayList<>(SocketClient.sentPacketList);
 
-            int x = 1;
-            for (JsonObjectEOU obj : safePacketList) {
-                String name = "Packet #";
-                name += x;
-                if (obj.has("op") || obj.has("t")) {
-                    int op = obj.get("op", Integer.class, -1);
-                    String t = obj.get("t", String.class, "None");
-                    name += " (Opcode: ";
-                    name += Utility.namedGatewayOpcode(op);
-                    name += ", Type: ";
-                    name += t;
-                    name += ")";
+                int x = 1;
+                for (JsonObjectEOU obj : safePacketList) {
+                    String name = "Packet #";
+                    name += x;
+                    if (obj.has("op") || obj.has("t")) {
+                        int op = obj.get("op", Integer.class, -1);
+                        name += " (Opcode: ";
+                        name += Utility.namedGatewayOpcode(op);
+                        name += ")";
+                    }
+                    jsonTree(name, obj.getNativeObject());
+                    x++;
                 }
-                jsonTree(name, obj.getNativeObject());
-                x++;
             }
-        }
+
+            if (ImGui.collapsingHeader("Packets received")) {
+                List<JsonObjectEOU> safePacketList = new ArrayList<>(SocketClient.packetList);
+
+                int x = 1;
+                for (JsonObjectEOU obj : safePacketList) {
+                    String name = "Packet #";
+                    name += x;
+                    if (obj.has("op") || obj.has("t")) {
+                        int op = obj.get("op", Integer.class, -1);
+                        String t = obj.get("t", String.class, "None");
+                        name += " (Opcode: ";
+                        name += Utility.namedGatewayOpcode(op);
+                        name += ", Type: ";
+                        name += t;
+                        name += ")";
+                    }
+                    jsonTree(name, obj.getNativeObject());
+                    x++;
+                }
+            }
+        });
     }
 
     @Override

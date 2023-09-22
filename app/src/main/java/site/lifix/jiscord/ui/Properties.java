@@ -1,8 +1,12 @@
 package site.lifix.jiscord.ui;
 
+import imgui.ImColor;
+
 import java.awt.Color;
 
 public class Properties {
+    public static final Color white = new Color(255, 255, 255, 255);
+
     public static final Color backgroundColour = new Color(25, 28, 30, 255);
     public static final Color widgetBackgroundColour = new Color(29, 35, 39, 255);
     public static final Color widgetBackgroundColourHovered = new Color(60, 66, 70, 255);

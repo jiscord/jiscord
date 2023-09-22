@@ -14,8 +14,10 @@ import site.lifix.jiscord.ui.Renderer;
 import site.lifix.jiscord.ui.elements.AbstractElement;
 import site.lifix.jiscord.ui.images.ImageCache;
 import site.lifix.jiscord.ui.images.Images;
+import site.lifix.jiscord.ui.images.StaticTextures;
 import site.lifix.jiscord.ui.notifications.NotificationManager;
 import site.lifix.jiscord.utility.Utility;
+import site.lifix.jiscord.utility.ValidatedValue;
 
 import java.awt.*;
 import java.util.*;
@@ -24,17 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class ServerListElement extends AbstractElement {
-    @Getter
-    @Setter
-    @AllArgsConstructor
-    public static class ServerDisplayElement {
-        private String url;
-        private int id;
-        private boolean loaded;
-    }
-
     public static final List<GuildObject> partialGuilds = new ArrayList<>();
-    public static final Map<String, ServerDisplayElement> guildIcons = new HashMap<>();
     private static final int guildIconSize = 52;
     private static final int guildIconGap = 8;
 
@@ -54,20 +46,19 @@ public class ServerListElement extends AbstractElement {
                             .replace("{ext}", guild.getIcon().get().startsWith("a_") ? "png" : "png")
                             .replace("{sz}", "256");
 
-                    byte[] iconData = ImageCache.getImageData(iconUrl);
-                    if (iconData.length != 0) {
-                        if (!guildIcons.containsKey(iconUrl)) {
-                            Images.ImageData data = Images.loadTexture(iconData, 256, 256);
-                            guildIcons.put(iconUrl, new ServerDisplayElement(iconUrl, data.getTextureId(), true));
-                        }
+                    ValidatedValue<Integer> icon = StaticTextures.getTexture(iconUrl, 256, 256);
 
-                        if (guildIcons.containsKey(iconUrl)) {
-                            ImGui.getBackgroundDrawList().addImageRounded(guildIcons.get(iconUrl).getId(),
-                                    left + (right - left) / 2 - 26, currentY.get(),
-                                    left + (right - left) / 2 + 26, currentY.get() + 52,
-                                    0, 0, 1, 1,
-                                    ImColor.rgba(255, 255, 255, 255), 26);
-                        }
+                    if (icon.valid()) {
+                        ImGui.getBackgroundDrawList().addImageRounded(icon.get(),
+                                left + (right - left) / 2 - 26, currentY.get(),
+                                left + (right - left) / 2 + 26, currentY.get() + 52,
+                                0, 0, 1, 1,
+                                ImColor.rgba(255, 255, 255, 255), 26);
+                    } else {
+                        ImGui.getBackgroundDrawList().addRectFilled(left + (right - left) / 2 - 26,
+                                currentY.get(),
+                                left + (right - left) / 2 + 26, currentY.get() + 52,
+                                ImColor.rgba(49, 50, 51, 255), 26);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();

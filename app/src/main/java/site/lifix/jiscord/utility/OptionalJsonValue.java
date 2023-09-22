@@ -28,6 +28,10 @@ public class OptionalJsonValue<T> {
     }
 
     public T get() {
-        return new JsonObjectEOU(this.parent).get(key, type);
+        return new JsonObjectEOU(this.parent).get(this.key, this.type);
+    }
+
+    public T get(T expectedValue) {
+        return new JsonObjectEOU(this.parent).get(this.key, this.type, expectedValue);
     }
 }

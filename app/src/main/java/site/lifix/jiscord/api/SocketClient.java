@@ -1,14 +1,15 @@
 package site.lifix.jiscord.api;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
 import org.java_websocket.handshake.ServerHandshake;
+import site.lifix.jiscord.Main;
 import site.lifix.jiscord.api.easeofuse.JsonObjectEOU;
 import site.lifix.jiscord.api.objects.gateway.events.ReadyObject;
+import site.lifix.jiscord.api.objects.guild.GuildMemberObject;
 import site.lifix.jiscord.api.objects.guild.GuildObject;
+import site.lifix.jiscord.api.objects.user.UserObject;
 import site.lifix.jiscord.ui.elements.impl.ServerListElement;
 import site.lifix.jiscord.ui.notifications.NotificationManager;
 import site.lifix.jiscord.utility.Utility;
@@ -137,18 +138,41 @@ public class SocketClient extends WebSocketClient {
 
         if (obj.has("t") && !obj.get("t").isJsonNull()) {
             if (obj.get("t").getAsString().equalsIgnoreCase("message_create")) {
-                String author = "Unknown";
                 String content = "None";
-                try {
-                    author = obj.get("d").getAsJsonObject().get("author").getAsJsonObject().get("username")
-                            .getAsString();
-                } catch (Exception ignored) {}
+
+                UserObject user = new UserObject(obj.get("d").getAsJsonObject().get("author"));
+
+                boolean hasGlobalName = user.getGlobalName().existsNonNull();
+                boolean legacyTag = user.getDiscriminator().existsNonNull() &&
+                        !user.getDiscriminator().get().equals("0");
+                String authorUsername = user.getUsername().get("unknown");
+                if (legacyTag) {
+                    authorUsername += "#";
+                    authorUsername += user.getDiscriminator().get();
+                }
+
+                String author;
+
+                if (hasGlobalName) {
+                    String authorGlobalName = user.getGlobalName().get("Unknown");
+                    author = authorGlobalName + " (" + authorUsername + ")";
+                } else {
+                    author = authorUsername;
+                }
+
+                String id = user.getId().get("0");
+                String avatar = user.getAvatar().get("0");
+                String avatarUrl = "https://cdn.discordapp.com/avatars/" + id + "/" + avatar + ".png?size=128";
 
                 try {
                     content = obj.get("d").getAsJsonObject().get("content").getAsString();
                 } catch (Exception ignored) {}
 
-                NotificationManager.push(author, content);
+                if (avatar.equals("0")) {
+                    NotificationManager.push(author, content);
+                } else {
+                    NotificationManager.push(avatarUrl, author, content);
+                }
             } else if (obj.get("t").getAsString().equalsIgnoreCase("ready")) {
                 ReadyObject ready = new ReadyObject(obj);
 
@@ -167,7 +191,18 @@ public class SocketClient extends WebSocketClient {
             }
         }
 
-        System.out.println("received: " + message);
+        if (Main.printFullJsonMessages.get()) {
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            String objPretty = gson.toJson(obj);
+
+            System.out.println("Received -> " + objPretty);
+        } else {
+            JsonObjectEOU base = new JsonObjectEOU(obj);
+            int op = base.get("op", Integer.class, -1);
+            String t = base.get("t", String.class, "None");
+
+            System.out.println("Received -> Opcode: " + Utility.namedGatewayOpcode(op) + ", Type: " + t);
+        }
     }
 
     @Override

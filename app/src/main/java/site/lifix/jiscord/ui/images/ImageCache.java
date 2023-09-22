@@ -19,10 +19,12 @@ public class ImageCache {
                 try {
                     ImageRefreshData[] safeImageTimings = IMAGE_TIMINGS.toArray(new ImageRefreshData[0]);
                     for (ImageRefreshData data : safeImageTimings) {
-                        if (data.getLastRefreshed() < System.currentTimeMillis() - IMAGE_REFRESH_TIME_MS) {
-                            System.out.println("Refreshing on " + data.getUrl());
-                            data.setData(Utility.urlToByteArray(data.getUrl()));
-                            data.setLastRefreshed(System.currentTimeMillis());
+                        if (data != null) {
+                            if (data.getLastRefreshed() < System.currentTimeMillis() - IMAGE_REFRESH_TIME_MS) {
+                                System.out.println("Refreshing on " + data.getUrl());
+                                data.setData(Utility.urlToByteArray(data.getUrl()));
+                                data.setLastRefreshed(System.currentTimeMillis());
+                            }
                         }
                     }
                 } catch (Exception e) {

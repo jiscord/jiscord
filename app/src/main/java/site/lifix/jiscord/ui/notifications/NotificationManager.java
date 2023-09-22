@@ -5,6 +5,7 @@ import site.lifix.jiscord.ui.Properties;
 import site.lifix.jiscord.ui.utility.LerpingFloat;
 
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 
 public class NotificationManager {
@@ -54,15 +55,21 @@ public class NotificationManager {
     private static final List<NotificationRenderer> notificationQueue = new ArrayList<>();
 
     public static void onTick() {
-        notificationQueue.removeIf(n -> n.timePassed(5000));
-        float currentY = Properties.Proportions.padding;
-        for (int x = 0; x < notificationQueue.size(); x++) {
-            currentY += notificationQueue.get(x).render(0.f, currentY)
-                    + Properties.Proportions.padding;
-        }
+        try {
+            notificationQueue.removeIf(n -> n.timePassed(5000));
+            float currentY = Properties.Proportions.padding;
+            for (int x = 0; x < notificationQueue.size(); x++) {
+                currentY += notificationQueue.get(x).render(0.f, currentY)
+                        + Properties.Proportions.padding;
+            }
+        } catch (ConcurrentModificationException ignored) {}
     }
 
     public static void push(String title, String message) {
         notificationQueue.add(new NotificationRenderer(new Notification(title, message)));
+    }
+
+    public static void push(String iconUrl, String title, String message) {
+        notificationQueue.add(new NotificationRenderer(new Notification(title, message).setIconUrl(iconUrl)));
     }
 }
