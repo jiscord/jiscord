@@ -112,9 +112,7 @@ public class Main extends Application {
                 ImGui.getIO());
 
         ImGui.text("Hello, World!");
-        Fonts.useFont(Fonts.productSansRegular30px, () -> {
-            ImGui.text("This should be in Product Sans Regular 30px.");
-        });
+        Fonts.useFont(Fonts.productSansRegular30px, () -> ImGui.text("This should be in Product Sans Regular 30px."));
 
         if (ImGui.button("Short notification")) {
             NotificationManager.push("Short notification", "Content here");
