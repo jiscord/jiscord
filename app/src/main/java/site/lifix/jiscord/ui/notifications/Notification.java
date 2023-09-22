@@ -26,7 +26,7 @@ public class Notification {
 
         Fonts.useFont(Fonts.productSansRegular30px, () -> {
             ImVec2 titleSize = ImGui.calcTextSize(this.title, false);
-            notificationMaxWidth.set(Math.max(titleSize.x + notificationRounding * 2.f, notificationMaxWidth.get()));
+            notificationMaxWidth.set(Math.max(titleSize.x, notificationMaxWidth.get()));
         });
 
         Fonts.useFont(Fonts.productSansRegular20px, () ->
