@@ -54,9 +54,6 @@ public class Utility {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             URL url = new URL(urlIn);
             URLConnection connection = url.openConnection();
-//            connection.addRequestProperty("User-Agent", "Mozilla/5.0" +
-//                    " (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 (KHTML, like Gecko)" +
-//                    " Version/13.1.2 Safari/605.1.15");
             connection.addRequestProperty("Accept-Encoding", "gzip, deflate, br");
             connection.addRequestProperty("Accept-Language", "en-US,en;q=0.9");
             connection.addRequestProperty("Cache-Control", "no-cache");
