@@ -9,7 +9,10 @@ import site.lifix.jiscord.api.easeofuse.JsonObjectEOU;
 import site.lifix.jiscord.api.objects.gateway.events.ReadyObject;
 import site.lifix.jiscord.api.objects.guild.GuildMemberObject;
 import site.lifix.jiscord.api.objects.guild.GuildObject;
+import site.lifix.jiscord.api.objects.message.EmbedObject;
+import site.lifix.jiscord.api.objects.message.MessageObject;
 import site.lifix.jiscord.api.objects.user.UserObject;
+import site.lifix.jiscord.api.statics.message.embed.EmbedType;
 import site.lifix.jiscord.ui.elements.impl.ServerListElement;
 import site.lifix.jiscord.ui.notifications.NotificationManager;
 import site.lifix.jiscord.utility.Utility;
@@ -138,6 +141,7 @@ public class SocketClient extends WebSocketClient {
 
         if (obj.has("t") && !obj.get("t").isJsonNull()) {
             if (obj.get("t").getAsString().equalsIgnoreCase("message_create")) {
+                MessageObject messageData = new MessageObject(obj.get("d"));
                 String content = "None";
 
                 UserObject user = new UserObject(obj.get("d").getAsJsonObject().get("author"));
@@ -169,9 +173,45 @@ public class SocketClient extends WebSocketClient {
                 } catch (Exception ignored) {}
 
                 if (avatar.equals("0")) {
-                    NotificationManager.push(author, content);
+                    if (messageData.getAttachments().isEmpty()) {
+                        if (!messageData.getEmbeds().isEmpty()) {
+                            EmbedObject first = messageData.getEmbeds().get(0);
+                            if (first.getType().get().equalsIgnoreCase(EmbedType.GIFV)) {
+                                NotificationManager.pushWithAttachment(author, content,
+                                        first.getThumbnail().get().getUrl().get());
+                            } else if (first.getType().get().equalsIgnoreCase(EmbedType.IMAGE)) {
+                                NotificationManager.pushWithAttachment(author, content,
+                                        first.getUrl().get());
+                            } else {
+                                NotificationManager.push(author, content);
+                            }
+                        } else {
+                            NotificationManager.push(author, content);
+                        }
+                    } else {
+                        NotificationManager.pushWithAttachment(author, content,
+                                messageData.getAttachments().get(0).getUrl().get());
+                    }
                 } else {
-                    NotificationManager.push(avatarUrl, author, content);
+                    if (messageData.getAttachments().isEmpty()) {
+                        if (!messageData.getEmbeds().isEmpty()) {
+                            EmbedObject first = messageData.getEmbeds().get(0);
+                            if (first.getType().get().equalsIgnoreCase(EmbedType.GIFV)) {
+                                NotificationManager.pushWithSmallIconAndAttachment(author, content, avatarUrl,
+                                        first.getThumbnail().get().getUrl().get());
+                            } else if (first.getType().get().equalsIgnoreCase(EmbedType.IMAGE)) {
+                                NotificationManager.pushWithSmallIconAndAttachment(author, content, avatarUrl,
+                                        first.getUrl().get());
+                            } else {
+                                NotificationManager.pushWithSmallIcon(author, content, avatarUrl);
+                            }
+                        } else {
+                            NotificationManager.pushWithSmallIcon(author, content, avatarUrl);
+                        }
+                    } else {
+                        NotificationManager.pushWithSmallIconAndAttachment(author, content, avatarUrl,
+                                messageData.getAttachments().get(0).getUrl().get());
+                    }
                 }
             } else if (obj.get("t").getAsString().equalsIgnoreCase("ready")) {
                 ReadyObject ready = new ReadyObject(obj);
@@ -182,7 +222,6 @@ public class SocketClient extends WebSocketClient {
 
                     if (guilds != null) {
                         guilds.forEach((guild) -> {
-                            System.out.println("aa");
                             NotificationManager.push("Found guild", guild.getName().get());
                             ServerListElement.partialGuilds.add(guild);
                         });

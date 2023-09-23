@@ -17,6 +17,7 @@ public class Notification {
     private final String title;
     private final String message;
     private String iconUrl = "";
+    private String attachmentUrl = "";
 
     public Notification(String title, String message) {
         this.title = title;
@@ -28,11 +29,31 @@ public class Notification {
         return this;
     }
 
+    public Notification setAttachmentUrl(String attachmentUrl) {
+        this.attachmentUrl = attachmentUrl;
+        return this;
+    }
+
     public float render(float x, float y, int opacity) {
         float notificationRounding = 10.f;
         AtomicReference<Float> notificationMaxWidth = new AtomicReference<>(300.f);
+        ValidatedValue<StaticTextures.TextureData> attachment = new ValidatedValue<StaticTextures.TextureData>() {
+            public StaticTextures.TextureData get() {
+                return new StaticTextures.TextureData("", -1, false, -1, -1);
+            }
+
+            public boolean valid() {
+                return false;
+            }
+        };
+
         if (!this.iconUrl.isEmpty()) {
             notificationMaxWidth.set(notificationMaxWidth.get() + 30f + notificationRounding);
+        }
+
+        if (!this.attachmentUrl.isEmpty()) {
+            attachment = StaticTextures.getTextureData(this.attachmentUrl,
+                    128, 128);
         }
 
         AtomicReference<ImVec2> contentTextSize = new AtomicReference<>();
@@ -49,19 +70,40 @@ public class Notification {
 
         Fonts.useFont(Fonts.productSansRegular20px, () ->
                 contentTextSize.set(ImGui.calcTextSize(this.message, false,
-                        notificationMaxWidth.get())));
+                        notificationMaxWidth.get() - (this.iconUrl.isEmpty() ? 0f
+                                : notificationRounding + 30f))));
 
-        Renderer.FOREGROUND.rect(Renderer.RenderAnchor.TOP_RIGHT, x, y,
-                x + notificationMaxWidth.get() + notificationRounding * 2.f,
-                y + Fonts.productSansRegular30px.getFontSize()
-                        + contentTextSize.get().y + notificationRounding * 3,
+        float rectMaxX = x + notificationMaxWidth.get() + notificationRounding * 2.f;
+        float rectMaxY = y + Fonts.productSansRegular30px.getFontSize() + contentTextSize.get().y
+                + notificationRounding * 3;
+
+        float attachmentMinY = rectMaxY;
+
+        float attachmentVisualWidth = 0f;
+        float attachmentVisualHeight = 0f;
+
+        if (!this.attachmentUrl.isEmpty()) {
+            if (attachment.valid()) {
+                float rectWidth = notificationMaxWidth.get();
+
+                float attachmentWidth = attachment.get().getWidth();
+                float attachmentHeight = attachment.get().getHeight();
+
+                attachmentVisualWidth = rectWidth - notificationRounding * 2.f;
+                attachmentVisualHeight = (attachmentVisualWidth / attachmentWidth) * attachmentHeight;
+
+                rectMaxY += notificationRounding;
+                rectMaxY += attachmentVisualHeight;
+            }
+        }
+
+        Renderer.FOREGROUND.rect(Renderer.RenderAnchor.TOP_RIGHT,
+                x, y, rectMaxX, rectMaxY,
                 Utility.applyOpacity(Properties.widgetBackgroundColourHovered, opacity),
                 notificationRounding);
 
-        Renderer.FOREGROUND.rectHollow(Renderer.RenderAnchor.TOP_RIGHT, x, y,
-                x + notificationMaxWidth.get() + notificationRounding * 2.f,
-                y + Fonts.productSansRegular30px.getFontSize()
-                        + contentTextSize.get().y + notificationRounding * 3,
+        Renderer.FOREGROUND.rectHollow(Renderer.RenderAnchor.TOP_RIGHT,
+                x, y, rectMaxX, rectMaxY,
                 Utility.applyOpacity(Properties.widgetAccentBackgroundColour, opacity),
                 notificationRounding);
 
@@ -100,6 +142,18 @@ public class Notification {
             }
         }
 
-        return Fonts.productSansRegular30px.getFontSize() + contentTextSize.get().y + notificationRounding * 3;
+        if (!this.attachmentUrl.isEmpty()) {
+            if (attachment.valid()) {
+                ImGui.getForegroundDrawList().addImageRounded(attachment.get().getId(),
+                        x - notificationMaxWidth.get() - notificationRounding, attachmentMinY,
+                        x - notificationMaxWidth.get() - notificationRounding + attachmentVisualWidth,
+                        attachmentMinY + attachmentVisualHeight,
+                        0, 0, 1, 1,
+                        ImColor.rgba(255, 255, 255, opacity), 15f);
+            }
+        }
+
+        return Fonts.productSansRegular30px.getFontSize() + contentTextSize.get().y + notificationRounding * 3
+                + attachmentVisualHeight + (attachment.valid() ? notificationRounding : 0f);
     }
 }

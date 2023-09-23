@@ -46,10 +46,10 @@ public class ServerListElement extends AbstractElement {
         smoothScroller.update();
 
         safePartialGuilds.forEach((guild) -> {
-            float iconMinX = left + (right - left) / 2 - 26;
+            float iconMinX = left + (right - left) / 2 - (guildIconSize / 2f);
             float iconMinY = currentY.get();
-            float iconMaxX = left + (right - left) / 2 + 26;
-            float iconMaxY = currentY.get() + 52;
+            float iconMaxX = left + (right - left) / 2 + (guildIconSize / 2f);
+            float iconMaxY = currentY.get() + guildIconSize;
 
             if (guild.getId().exists() && guild.getIcon().exists() && guild.getIcon().get() != null) {
                 try {
@@ -65,11 +65,13 @@ public class ServerListElement extends AbstractElement {
                         ImGui.getBackgroundDrawList().addImageRounded(icon.get(),
                                 iconMinX, iconMinY, iconMaxX, iconMaxY,
                                 0, 0, 1, 1,
-                                ImColor.rgba(255, 255, 255, 255), 26);
+                                ImColor.rgba(255, 255, 255, 255),
+                                guildIconSize / 2f);
                     } else {
                         ImGui.getBackgroundDrawList().addRectFilled(
                                 iconMinX, iconMinY, iconMaxX, iconMaxY,
-                                ImColor.rgba(49, 50, 51, 255), 26);
+                                ImColor.rgba(49, 50, 51, 255),
+                                guildIconSize / 2f);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -77,7 +79,8 @@ public class ServerListElement extends AbstractElement {
             } else {
                 ImGui.getBackgroundDrawList().addRectFilled(
                         iconMinX, iconMinY, iconMaxX, iconMaxY,
-                        ImColor.rgba(49, 50, 51, 255), 26);
+                        ImColor.rgba(49, 50, 51, 255),
+                        guildIconSize / 2f);
 
                 String abbreviated = String.join("", Utility.copyModified(guild.getName().get()
                         .split(" "), (original) -> original.isEmpty() ? "" : original.substring(0, 1)));
@@ -86,8 +89,8 @@ public class ServerListElement extends AbstractElement {
                 Fonts.useFont(Fonts.productSansRegular15px, () -> size.set(ImGui.calcTextSize(abbreviated)));
 
                 Renderer.BACKGROUND.text(Fonts.productSansRegular15px, abbreviated,
-                        left + (right - left) / 2 - size.get().x / 2,
-                        currentY.get() + 26 - size.get().y / 2,
+                        iconMinX + (guildIconSize / 2f) - size.get().x / 2,
+                        iconMinY + (guildIconSize / 2f) - size.get().y / 2,
                         new Color(255, 255, 255, 255));
             }
 

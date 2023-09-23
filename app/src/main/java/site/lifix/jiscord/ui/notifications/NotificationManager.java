@@ -69,7 +69,18 @@ public class NotificationManager {
         notificationQueue.add(new NotificationRenderer(new Notification(title, message)));
     }
 
-    public static void push(String iconUrl, String title, String message) {
+    public static void pushWithSmallIcon(String title, String message, String iconUrl) {
         notificationQueue.add(new NotificationRenderer(new Notification(title, message).setIconUrl(iconUrl)));
+    }
+
+    public static void pushWithAttachment(String title, String message, String attachmentUrl) {
+        notificationQueue.add(new NotificationRenderer(new Notification(title, message)
+                .setAttachmentUrl(attachmentUrl)));
+    }
+
+    public static void pushWithSmallIconAndAttachment(String title, String message, String iconUrl,
+                                                      String attachmentUrl) {
+        notificationQueue.add(new NotificationRenderer(new Notification(title, message)
+                .setIconUrl(iconUrl).setAttachmentUrl(attachmentUrl)));
     }
 }
