@@ -131,6 +131,14 @@ public class Utility {
         return new Color(color.getRed(), color.getGreen(), color.getBlue(), opacity);
     }
 
+    public static int positiveDiff(int a, int b) {
+        return Math.max(a, b) - Math.min(a, b);
+    }
+
+    public static float positiveDiff(float a, float b) {
+        return Math.max(a, b) - Math.min(a, b);
+    }
+
     public static <A, B> List<A> copyModified(List<B> originalList, CustomRunnable<A, B> conversion) {
         List<A> list = new ArrayList<>();
         if (originalList != null && !originalList.isEmpty()) {

@@ -16,6 +16,7 @@ import site.lifix.jiscord.ui.images.ImageCache;
 import site.lifix.jiscord.ui.images.Images;
 import site.lifix.jiscord.ui.images.StaticTextures;
 import site.lifix.jiscord.ui.notifications.NotificationManager;
+import site.lifix.jiscord.ui.utility.LerpingFloat;
 import site.lifix.jiscord.utility.Utility;
 import site.lifix.jiscord.utility.ValidatedValue;
 
@@ -32,12 +33,24 @@ public class ServerListElement extends AbstractElement {
 
     private static final String guildIconUrl = "https://cdn.discordapp.com/icons/{guildId}/{icon}.{ext}?size={sz}";
 
+    private static final LerpingFloat smoothScroller = new LerpingFloat(0.f, 0.1414f);
+
     public void render(float left, float top, float right, float bottom, ImGuiIO io) {
         Renderer.BACKGROUND.rect(left, top, right, bottom, Properties.widgetBackgroundColour, 20.f);
 
-        AtomicInteger currentY = new AtomicInteger((int) top + guildIconGap);
+        AtomicInteger currentY = new AtomicInteger((int) (top + guildIconGap + smoothScroller.getCurrent()));
         List<GuildObject> safePartialGuilds = Arrays.asList(partialGuilds.toArray(new GuildObject[0]));
+
+        float guildsTotalHeight = Math.max((guildIconSize * safePartialGuilds.size())
+                + (guildIconGap * (safePartialGuilds.size() - 1)), 0f);
+        smoothScroller.update();
+
         safePartialGuilds.forEach((guild) -> {
+            float iconMinX = left + (right - left) / 2 - 26;
+            float iconMinY = currentY.get();
+            float iconMaxX = left + (right - left) / 2 + 26;
+            float iconMaxY = currentY.get() + 52;
+
             if (guild.getId().exists() && guild.getIcon().exists() && guild.getIcon().get() != null) {
                 try {
                     String iconUrl = guildIconUrl.replace("{guildId}", guild.getId().get())
@@ -50,23 +63,20 @@ public class ServerListElement extends AbstractElement {
 
                     if (icon.valid()) {
                         ImGui.getBackgroundDrawList().addImageRounded(icon.get(),
-                                left + (right - left) / 2 - 26, currentY.get(),
-                                left + (right - left) / 2 + 26, currentY.get() + 52,
+                                iconMinX, iconMinY, iconMaxX, iconMaxY,
                                 0, 0, 1, 1,
                                 ImColor.rgba(255, 255, 255, 255), 26);
                     } else {
-                        ImGui.getBackgroundDrawList().addRectFilled(left + (right - left) / 2 - 26,
-                                currentY.get(),
-                                left + (right - left) / 2 + 26, currentY.get() + 52,
+                        ImGui.getBackgroundDrawList().addRectFilled(
+                                iconMinX, iconMinY, iconMaxX, iconMaxY,
                                 ImColor.rgba(49, 50, 51, 255), 26);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             } else {
-                ImGui.getBackgroundDrawList().addRectFilled(left + (right - left) / 2 - 26,
-                        currentY.get(),
-                        left + (right - left) / 2 + 26, currentY.get() + 52,
+                ImGui.getBackgroundDrawList().addRectFilled(
+                        iconMinX, iconMinY, iconMaxX, iconMaxY,
                         ImColor.rgba(49, 50, 51, 255), 26);
 
                 String abbreviated = String.join("", Utility.copyModified(guild.getName().get()
@@ -81,8 +91,41 @@ public class ServerListElement extends AbstractElement {
                         new Color(255, 255, 255, 255));
             }
 
+            float mouseX = io.getMousePosX();
+            float mouseY = io.getMousePosY();
+
+            if (mouseX >= iconMinX && mouseX <= iconMaxX && mouseY >= iconMinY && mouseY <= iconMaxY) {
+                ImGui.setTooltip(guild.getName().get("Unknown"));
+            }
+
             currentY.addAndGet(guildIconSize + guildIconGap);
         });
+
+        float elemHeight = Utility.positiveDiff(top, bottom);
+        if (guildsTotalHeight != 0) {
+            if (smoothScroller.getTarget() > 0f) {
+                smoothScroller.setTarget(0f);
+            }
+
+            if (guildsTotalHeight > elemHeight) {
+                if (guildsTotalHeight + smoothScroller.getTarget() < elemHeight + guildIconGap) {
+                    smoothScroller.setTarget(elemHeight - guildsTotalHeight - (guildIconGap * 2));
+                }
+            }
+        }
+    }
+
+    public void onScroll(float left, float top, float right, float bottom, float amount) {
+        List<GuildObject> safePartialGuilds = Arrays.asList(partialGuilds.toArray(new GuildObject[0]));
+
+        float guildsTotalHeight = (guildIconSize * safePartialGuilds.size())
+                + (guildIconGap * (safePartialGuilds.size() - 1));
+
+        if (guildsTotalHeight > Utility.positiveDiff(top, bottom)) {
+            smoothScroller.setTarget(smoothScroller.getTarget() + (amount * (guildIconSize + guildIconGap)));
+        } else {
+            smoothScroller.setTarget(0f);
+        }
     }
 }
 

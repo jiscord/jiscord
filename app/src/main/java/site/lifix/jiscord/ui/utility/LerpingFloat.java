@@ -1,7 +1,11 @@
 package site.lifix.jiscord.ui.utility;
 
+import lombok.Getter;
+
 public class LerpingFloat {
+    @Getter
     private float target;
+    @Getter
     private float current;
     private float speed;
 
@@ -38,9 +42,5 @@ public class LerpingFloat {
     public LerpingFloat setCurrent(float current) {
         this.current = current;
         return this;
-    }
-
-    public float getCurrent() {
-        return this.current;
     }
 }

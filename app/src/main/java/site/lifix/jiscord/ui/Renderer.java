@@ -4,6 +4,8 @@ import imgui.ImColor;
 import imgui.ImDrawList;
 import imgui.ImFont;
 import imgui.ImGui;
+import lombok.Getter;
+import org.lwjgl.opengl.GL11;
 import site.lifix.jiscord.utility.Utility;
 import java.awt.Color;
 
@@ -12,6 +14,16 @@ public class Renderer {
     public static final Renderer FOREGROUND = new Renderer(RenderType.FOREGROUND);
 
     private final RenderType type;
+
+    public void scissor(int left, int top, int right, int bottom, Runnable inArea) {
+        this.drawList().pushClipRect(left, top, right, bottom);
+        inArea.run();
+        this.drawList().popClipRect();
+    }
+
+    public void scissor(float left, float top, float right, float bottom, Runnable inArea) {
+        this.scissor((int) left, (int) top, (int) right, (int) bottom, inArea);
+    }
 
     private Renderer(RenderType type) {
         this.type = type;

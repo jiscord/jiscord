@@ -2,10 +2,8 @@ package site.lifix.jiscord;
 
 import com.google.gson.JsonElement;
 import imgui.ImGui;
-import imgui.ImGuiInputTextCallbackData;
 import imgui.app.Application;
 import imgui.app.Configuration;
-import imgui.callback.ImGuiInputTextCallback;
 import imgui.flag.ImGuiInputTextFlags;
 import imgui.type.ImBoolean;
 import imgui.type.ImString;
@@ -85,35 +83,31 @@ public class Main extends Application {
 
         NotificationManager.onTick();
 
-        serverListElement.render(Properties.Proportions.padding, Properties.Proportions.padding,
+        serverListElement.process(Properties.Proportions.padding, Properties.Proportions.padding,
                 Properties.Proportions.padding + Properties.Proportions.guildListWidth,
-                ImGui.getIO().getDisplaySizeY() - Properties.Proportions.padding,
-                ImGui.getIO());
+                ImGui.getIO().getDisplaySizeY() - Properties.Proportions.padding);
 
-        channelListElement.render(
+        channelListElement.process(
                 Properties.Proportions.padding * 2 + Properties.Proportions.guildListWidth,
                 Properties.Proportions.padding,
                 Properties.Proportions.padding * 2 + Properties.Proportions.guildListWidth
                         + Properties.Proportions.channelListWidth,
-                ImGui.getIO().getDisplaySizeY() - Properties.Proportions.padding,
-                ImGui.getIO());
+                ImGui.getIO().getDisplaySizeY() - Properties.Proportions.padding);
 
-        channelContentElement.render(
+        channelContentElement.process(
                 Properties.Proportions.padding * 3 + Properties.Proportions.guildListWidth
                         + Properties.Proportions.channelListWidth,
                 Properties.Proportions.padding,
                 ImGui.getIO().getDisplaySizeX() - Properties.Proportions.padding * 2
                         - Properties.Proportions.userListWidth,
-                ImGui.getIO().getDisplaySizeY() - Properties.Proportions.padding,
-                ImGui.getIO());
+                ImGui.getIO().getDisplaySizeY() - Properties.Proportions.padding);
 
-        userListElement.render(
+        userListElement.process(
                 ImGui.getIO().getDisplaySizeX() - Properties.Proportions.padding
                         - Properties.Proportions.userListWidth,
                 Properties.Proportions.padding,
                 ImGui.getIO().getDisplaySizeX() - Properties.Proportions.padding,
-                ImGui.getIO().getDisplaySizeY() - Properties.Proportions.padding,
-                ImGui.getIO());
+                ImGui.getIO().getDisplaySizeY() - Properties.Proportions.padding);
 
         ImGui.text("Hello, World!");
 
