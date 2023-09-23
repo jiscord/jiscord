@@ -11,51 +11,63 @@ import site.lifix.jiscord.utility.Utility;
 import java.util.List;
 
 public class MessageComponentObject extends BaseObject {
-    // component type       all types
+    // component type
+    // Applicable to: all types
     @Getter private final OptionalJsonValue<Integer> type
             = new OptionalJsonValue<>(this, "type", Integer.class);
 
-    // a developer-defined identifier for the component, max 100 characters Buttons, Select Menus
+    // a developer-defined identifier for the component, max 100 characters
+    // Applicable to: Buttons, Select Menus
     @Getter private final OptionalJsonValue<String> customId
             = new OptionalJsonValue<>(this, "custom_id", String.class);
 
-    // whether the component is disabled, default false     Buttons, Select Menus
+    // whether the component is disabled, default false
+    // Applicable to: Buttons, Select Menus
     @Getter private final OptionalJsonValue<Boolean> disabled
             = new OptionalJsonValue<>(this, "disabled", Boolean.class);
 
-    // one of button styles Buttons
+    // one of button styles
+    // Applicable to: Buttons
     @Getter private final OptionalJsonValue<Integer> style
             = new OptionalJsonValue<>(this, "style", Integer.class);
 
-    // text that appears on the button, max 80 characters   Buttons
+    // text that appears on the button, max 80 characters
+    // Applicable to: Buttons
     @Getter private final OptionalJsonValue<String> label
             = new OptionalJsonValue<>(this, "label", String.class);
 
-    // name, id, and animated       Buttons
+    // name, id, and animated
+    // Applicable to: Buttons
     @Getter private final OptionalJsonValue<EmojiObject> emoji
             = new OptionalJsonValue<>(this, "emoji", EmojiObject.class);
 
-    // a url for link-style buttons Buttons
+    // a url for link-style buttons
+    // Applicable to: Buttons
     @Getter private final OptionalJsonValue<String> url
             = new OptionalJsonValue<>(this, "url", String.class);
 
-    // the choices in the select, max 25    Select Menus
+    // the choices in the select, max 25
+    // Applicable to: Select Menus
     private final OptionalJsonValue<JsonArray> options
             = new OptionalJsonValue<>(this, "options", JsonArray.class);
 
-    // custom placeholder text if nothing is selected, max 100 characters   Select Menus
+    // custom placeholder text if nothing is selected, max 100 characters
+    // Applicable to: Select Menus
     @Getter private final OptionalJsonValue<String> placeholder
             = new OptionalJsonValue<>(this, "placeholder", String.class);
 
-    // the minimum number of items that must be chosen; default 1, min 0, max 25    Select Menus
+    // the minimum number of items that must be chosen; default 1, min 0, max 25
+    // Applicable to: Select Menus
     @Getter private final OptionalJsonValue<Integer> minValues
             = new OptionalJsonValue<>(this, "min_values", Integer.class);
 
-    // the maximum number of items that can be chosen; default 1, max 25    Select Menus
+    // the maximum number of items that can be chosen; default 1, max 25
+    // Applicable to: Select Menus
     @Getter private final OptionalJsonValue<Integer> maxValues
             = new OptionalJsonValue<>(this, "max_values", Integer.class);
 
-    // a list of child components   Action Rows
+    // a list of child components
+    // Applicable to: Action Rows
     private final OptionalJsonValue<JsonArray> components
             = new OptionalJsonValue<>(this, "components", JsonArray.class);
 
