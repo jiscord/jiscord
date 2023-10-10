@@ -1,19 +1,22 @@
 package site.lifix.jiscord.api;
 
 import com.google.gson.*;
+import lombok.Getter;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
 import org.java_websocket.handshake.ServerHandshake;
 import site.lifix.jiscord.Main;
 import site.lifix.jiscord.api.easeofuse.JsonObjectEOU;
 import site.lifix.jiscord.api.objects.gateway.events.ReadyObject;
-import site.lifix.jiscord.api.objects.guild.GuildMemberObject;
 import site.lifix.jiscord.api.objects.guild.GuildObject;
 import site.lifix.jiscord.api.objects.message.EmbedObject;
 import site.lifix.jiscord.api.objects.message.MessageObject;
 import site.lifix.jiscord.api.objects.user.UserObject;
+import site.lifix.jiscord.api.requests.Requests;
+import site.lifix.jiscord.api.statics.cdn.CDNEndpoints;
+import site.lifix.jiscord.api.statics.cdn.CDNFileFormat;
 import site.lifix.jiscord.api.statics.message.embed.EmbedType;
-import site.lifix.jiscord.ui.elements.impl.ServerListElement;
+import site.lifix.jiscord.ui.elements.impl.GuildListElement;
 import site.lifix.jiscord.ui.notifications.NotificationManager;
 import site.lifix.jiscord.utility.Utility;
 
@@ -29,7 +32,8 @@ public class SocketClient extends WebSocketClient {
     public static List<JsonObjectEOU> sentPacketList = new ArrayList<>();
     public static SocketClient instance;
 
-    private String token;
+    @Getter
+    private String token = "";
 
     public SocketClient(URI serverUri, Draft draft) {
         super(serverUri, draft);
@@ -48,6 +52,7 @@ public class SocketClient extends WebSocketClient {
             try {
                 SocketClient.instance = new SocketClient(new URI("wss://gateway.discord.gg/?encoding=json&v=9"));
                 SocketClient.instance.token = token;
+                Main.channelListElement.setApiRequiresRefresh(true);
                 SocketClient.instance.addHeader("Accept-Encoding", "gzip, deflate, br");
                 SocketClient.instance.addHeader("Accept-Language", "en-US,en;q=0.9");
                 SocketClient.instance.addHeader("Cache-Control", "no-cache");
@@ -86,7 +91,7 @@ public class SocketClient extends WebSocketClient {
                                 .add("referrer_current", "")
                                 .add("referring_domain_current", "")
                                 .add("release_channel", "stable")
-                                .add("client_build_number", 103981)
+                                .add("client_build_number", 230656)
                                 .add("client_event_source", null))
                         .add("presence", new JsonObjectEOU()
                                 .add("status", "online")
@@ -142,7 +147,7 @@ public class SocketClient extends WebSocketClient {
         if (obj.has("t") && !obj.get("t").isJsonNull()) {
             if (obj.get("t").getAsString().equalsIgnoreCase("message_create")) {
                 MessageObject messageData = new MessageObject(obj.get("d"));
-                String content = "None";
+                String content = messageData.getContent().get("");
 
                 UserObject user = new UserObject(obj.get("d").getAsJsonObject().get("author"));
 
@@ -166,52 +171,32 @@ public class SocketClient extends WebSocketClient {
 
                 String id = user.getId().get("0");
                 String avatar = user.getAvatar().get("0");
-                String avatarUrl = "https://cdn.discordapp.com/avatars/" + id + "/" + avatar + ".png?size=128";
 
-                try {
-                    content = obj.get("d").getAsJsonObject().get("content").getAsString();
-                } catch (Exception ignored) {}
-
+                String avatarUrl;
                 if (avatar.equals("0")) {
-                    if (messageData.getAttachments().isEmpty()) {
-                        if (!messageData.getEmbeds().isEmpty()) {
-                            EmbedObject first = messageData.getEmbeds().get(0);
-                            if (first.getType().get().equalsIgnoreCase(EmbedType.GIFV)) {
-                                NotificationManager.pushWithAttachment(author, content,
-                                        first.getThumbnail().get().getUrl().get());
-                            } else if (first.getType().get().equalsIgnoreCase(EmbedType.IMAGE)) {
-                                NotificationManager.pushWithAttachment(author, content,
-                                        first.getUrl().get());
-                            } else {
-                                NotificationManager.push(author, content);
-                            }
-                        } else {
-                            NotificationManager.push(author, content);
-                        }
-                    } else {
-                        NotificationManager.pushWithAttachment(author, content,
-                                messageData.getAttachments().get(0).getUrl().get());
-                    }
+                    avatarUrl = CDNEndpoints.getDefaultUserAvatarUrl(user);
                 } else {
-                    if (messageData.getAttachments().isEmpty()) {
-                        if (!messageData.getEmbeds().isEmpty()) {
-                            EmbedObject first = messageData.getEmbeds().get(0);
-                            if (first.getType().get().equalsIgnoreCase(EmbedType.GIFV)) {
-                                NotificationManager.pushWithSmallIconAndAttachment(author, content, avatarUrl,
-                                        first.getThumbnail().get().getUrl().get());
-                            } else if (first.getType().get().equalsIgnoreCase(EmbedType.IMAGE)) {
-                                NotificationManager.pushWithSmallIconAndAttachment(author, content, avatarUrl,
-                                        first.getUrl().get());
-                            } else {
-                                NotificationManager.pushWithSmallIcon(author, content, avatarUrl);
-                            }
+                    avatarUrl = CDNEndpoints.getUserAvatarUrl(id, avatar, CDNFileFormat.PNG, 128);
+                }
+
+                if (messageData.getAttachments().isEmpty()) {
+                    if (!messageData.getEmbeds().isEmpty()) {
+                        EmbedObject first = messageData.getEmbeds().get(0);
+                        if (first.getType().get().equalsIgnoreCase(EmbedType.GIFV)) {
+                            NotificationManager.pushWithSmallIconAndAttachment(author, content, avatarUrl,
+                                    first.getThumbnail().get().getUrl().get());
+                        } else if (first.getType().get().equalsIgnoreCase(EmbedType.IMAGE)) {
+                            NotificationManager.pushWithSmallIconAndAttachment(author, content, avatarUrl,
+                                    first.getUrl().get());
                         } else {
                             NotificationManager.pushWithSmallIcon(author, content, avatarUrl);
                         }
                     } else {
-                        NotificationManager.pushWithSmallIconAndAttachment(author, content, avatarUrl,
-                                messageData.getAttachments().get(0).getUrl().get());
+                        NotificationManager.pushWithSmallIcon(author, content, avatarUrl);
                     }
+                } else {
+                    NotificationManager.pushWithSmallIconAndAttachment(author, content, avatarUrl,
+                            messageData.getAttachments().get(0).getUrl().get());
                 }
             } else if (obj.get("t").getAsString().equalsIgnoreCase("ready")) {
                 ReadyObject ready = new ReadyObject(obj);
@@ -221,10 +206,7 @@ public class SocketClient extends WebSocketClient {
                     List<GuildObject> guilds = data.getGuilds();
 
                     if (guilds != null) {
-                        guilds.forEach((guild) -> {
-                            NotificationManager.push("Found guild", guild.getName().get());
-                            ServerListElement.partialGuilds.add(guild);
-                        });
+                        guilds.forEach((guild) -> GuildListElement.partialGuilds.put(guild.getId().get(), guild));
                     }
                 }
             }

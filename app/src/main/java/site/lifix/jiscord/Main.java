@@ -14,7 +14,7 @@ import site.lifix.jiscord.ui.Properties;
 import site.lifix.jiscord.ui.Renderer;
 import site.lifix.jiscord.ui.elements.impl.ChannelContentElement;
 import site.lifix.jiscord.ui.elements.impl.ChannelListElement;
-import site.lifix.jiscord.ui.elements.impl.ServerListElement;
+import site.lifix.jiscord.ui.elements.impl.GuildListElement;
 import site.lifix.jiscord.ui.elements.impl.UserListElement;
 import site.lifix.jiscord.ui.images.ImageCache;
 import site.lifix.jiscord.ui.notifications.NotificationManager;
@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 public class Main extends Application {
-    public static ServerListElement serverListElement = new ServerListElement();
+    public static GuildListElement guildListElement = new GuildListElement();
     public static ChannelListElement channelListElement = new ChannelListElement();
     public static ChannelContentElement channelContentElement = new ChannelContentElement();
     public static UserListElement userListElement = new UserListElement();
@@ -83,7 +83,7 @@ public class Main extends Application {
 
         NotificationManager.onTick();
 
-        serverListElement.process(Properties.Proportions.padding, Properties.Proportions.padding,
+        guildListElement.process(Properties.Proportions.padding, Properties.Proportions.padding,
                 Properties.Proportions.padding + Properties.Proportions.guildListWidth,
                 ImGui.getIO().getDisplaySizeY() - Properties.Proportions.padding);
 
@@ -176,6 +176,8 @@ public class Main extends Application {
                 }
             }
         });
+
+        ImGui.showDemoWindow();
     }
 
     @Override

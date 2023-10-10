@@ -11,6 +11,11 @@ public abstract class AbstractElement {
     public void process(float left, float top, float right, float bottom) {
         Renderer.BACKGROUND.scissor(left, top, right, bottom, () ->
                 this.render(left, top, right, bottom, ImGui.getIO()));
-        this.onScroll(left, top, right, bottom, ImGui.getIO().getMouseWheel());
+
+        float mouseX = ImGui.getIO().getMousePosX();
+        float mouseY = ImGui.getIO().getMousePosY();
+        if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) {
+            this.onScroll(left, top, right, bottom, ImGui.getIO().getMouseWheel());
+        }
     }
 }

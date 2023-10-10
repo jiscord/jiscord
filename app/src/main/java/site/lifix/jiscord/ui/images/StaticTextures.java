@@ -3,7 +3,6 @@ package site.lifix.jiscord.ui.images;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import site.lifix.jiscord.ui.elements.impl.ServerListElement;
 import site.lifix.jiscord.utility.ValidatedValue;
 
 import java.util.HashMap;

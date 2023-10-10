@@ -2,19 +2,17 @@ package site.lifix.jiscord.utility;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import org.lwjgl.BufferUtils;
+import site.lifix.jiscord.api.SocketClient;
 import site.lifix.jiscord.api.statics.gateway.Capabilities;
 
-import java.awt.Color;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.awt.*;
+import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 public class Utility {
@@ -22,6 +20,26 @@ public class Utility {
         return Capabilities.VERSIONED_READ_STATES
                 | Capabilities.VERSIONED_USER_GUILD_SETTINGS | Capabilities.DEDUPE_USER_OBJECTS
                 | Capabilities.PRIORITIZED_READY_PAYLOAD | Capabilities.MULTIPLE_GUILD_EXPERIMENT_POPULATIONS;
+    }
+
+    public static URLConnection properConnection(URL url) throws IOException {
+        URLConnection connection = url.openConnection();
+        connection.addRequestProperty("Accept-Language", "en-US,en;q=0.9");
+        connection.addRequestProperty("Cache-Control", "no-cache");
+        connection.addRequestProperty("Pragma", "no-cache");
+        connection.addRequestProperty("Sec-WebSocket-Extensions", "permessage-deflate;" +
+                " client_max_window_bits");
+        connection.addRequestProperty("User-Agent", "Mozilla/5.0" +
+                " (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 (KHTML, like Gecko)" +
+                " Version/13.1.2 Safari/605.1.15");
+
+        return connection;
+    }
+
+    public static URLConnection properConnectionAuthorized(URL url) throws IOException {
+        URLConnection connection = properConnection(url);
+        connection.addRequestProperty("Authorization", SocketClient.instance.getToken());
+        return connection;
     }
 
     public static String fmt(String text, Object... objects) {
@@ -49,31 +67,22 @@ public class Utility {
         return new byte[0];
     }
 
-    public static byte[] urlToByteArray(String urlIn) {
+    public static byte[] connectionToByteArray(URLConnection connection) {
         try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            URL url = new URL(urlIn);
-            URLConnection connection = url.openConnection();
-            connection.addRequestProperty("Accept-Encoding", "gzip, deflate, br");
-            connection.addRequestProperty("Accept-Language", "en-US,en;q=0.9");
-            connection.addRequestProperty("Cache-Control", "no-cache");
-            connection.addRequestProperty("Pragma", "no-cache");
-            connection.addRequestProperty("Sec-WebSocket-Extensions", "permessage-deflate;" +
-                    " client_max_window_bits");
-            connection.addRequestProperty("User-Agent", "Mozilla/5.0" +
-                    " (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 (KHTML, like Gecko)" +
-                    " Version/13.1.2 Safari/605.1.15");
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+
             try (InputStream is = connection.getInputStream()) {
                 byte[] byteChunk = new byte[4096]; // Or whatever size you want to read in at a time.
                 int n;
 
                 while ((n = is.read(byteChunk)) > 0) {
-                    baos.write(byteChunk, 0, n);
+                    output.write(byteChunk, 0, n);
                 }
 
-                return baos.toByteArray();
+                return output.toByteArray();
             } catch (IOException e) {
-                System.err.printf("Failed while reading bytes from %s: %s", url.toExternalForm(), e.getMessage());
+                System.err.printf("Failed while reading bytes from %s: %s", connection.getURL().toExternalForm(),
+                        e.getMessage());
                 e.printStackTrace();
             }
         } catch (Exception e) {
@@ -81,6 +90,68 @@ public class Utility {
         }
 
         return new byte[0];
+    }
+
+    public static String connectionToString(URLConnection connection) {
+        try {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+                StringBuilder builder = new StringBuilder();
+                String inputLine;
+                while ((inputLine = reader.readLine()) != null) {
+                    builder.append(inputLine).append("\n");
+                }
+                reader.close();
+                return builder.substring(0, builder.length() - 1);
+            } catch (IOException e) {
+                System.err.printf("Failed while reading bytes from %s: %s", connection.getURL().toExternalForm(),
+                        e.getMessage());
+                e.printStackTrace();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return "";
+    }
+
+    public static byte[] urlToByteArray(String url) {
+        try {
+            return connectionToByteArray(properConnection(new URL(url)));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return new byte[0];
+    }
+
+    public static byte[] urlToByteArrayAuthorized(String url) {
+        try {
+            return connectionToByteArray(properConnectionAuthorized(new URL(url)));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return new byte[0];
+    }
+
+    public static String urlToString(String url) {
+        try {
+            return connectionToString(properConnection(new URL(url)));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return "";
+    }
+
+    public static String urlToStringAuthorized(String url) {
+        try {
+            return connectionToString(properConnectionAuthorized(new URL(url)));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return "";
     }
 
     @SafeVarargs
@@ -139,7 +210,7 @@ public class Utility {
         return Math.max(a, b) - Math.min(a, b);
     }
 
-    public static <A, B> List<A> copyModified(List<B> originalList, CustomRunnable<A, B> conversion) {
+    public static <A, B> List<A> copyModified(Collection<B> originalList, CustomRunnable<A, B> conversion) {
         List<A> list = new ArrayList<>();
         if (originalList != null && !originalList.isEmpty()) {
             for (B item : originalList) {

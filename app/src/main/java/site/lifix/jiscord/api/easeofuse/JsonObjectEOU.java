@@ -24,6 +24,8 @@ public class JsonObjectEOU extends AbstractEOUClass<JsonObject> {
             this.nativeObject.add(key, (JsonElement) value);
         } else if (value instanceof JsonObjectEOU) {
             this.nativeObject.add(key, ((JsonObjectEOU) value).getNativeObject());
+        } else if (value instanceof JsonArrayEOU) {
+            this.nativeObject.add(key, ((JsonArrayEOU) value).getNativeObject());
         } else if (value instanceof Number) {
             this.nativeObject.addProperty(key, (Number) value);
         } else if (value instanceof String) {
@@ -41,7 +43,6 @@ public class JsonObjectEOU extends AbstractEOUClass<JsonObject> {
         return this.nativeObject.has(key);
     }
 
-    @SuppressWarnings("unchecked")
     public <T> T get(String key, Class<T> typedClass, T expectedValue) {
         Object value = null;
         if (this.has(key)) {
@@ -84,6 +85,12 @@ public class JsonObjectEOU extends AbstractEOUClass<JsonObject> {
                     } else {
                         value = new JsonObjectEOU(elem.getAsJsonObject());
                     }
+                } else if (Utility.classEq(typedClass, JsonArrayEOU.class)) {
+                    if (elem.getAsJsonArray() == null) {
+                        value = new JsonArrayEOU();
+                    } else {
+                        value = new JsonArrayEOU(elem.getAsJsonArray());
+                    }
                 } else if (Utility.classEq(typedClass.getSuperclass(), BaseObject.class)) {
                     try {
                         Constructor<?> constructor = typedClass.getConstructor(JsonElement.class);
@@ -109,6 +116,10 @@ public class JsonObjectEOU extends AbstractEOUClass<JsonObject> {
 
     public <T> T get(String key, Class<T> typedClass) {
         return this.get(key, typedClass, null);
+    }
+
+    public JsonObjectEOU get(String key) {
+        return this.get(key, JsonObjectEOU.class);
     }
 
     public String string() {
