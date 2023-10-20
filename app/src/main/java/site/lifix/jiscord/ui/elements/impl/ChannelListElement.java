@@ -4,6 +4,7 @@ import imgui.ImColor;
 import imgui.ImGui;
 import imgui.ImGuiIO;
 import lombok.Setter;
+import site.lifix.jiscord.Main;
 import site.lifix.jiscord.api.SocketClient;
 import site.lifix.jiscord.api.objects.channel.ChannelObject;
 import site.lifix.jiscord.api.objects.user.UserObject;
@@ -36,6 +37,8 @@ public class ChannelListElement extends AbstractElement {
     private static final float privateElemIconSize = 32f;
 
     private static final LerpingFloat smoothScroller = new LerpingFloat(0.f, 0.1414f);
+
+    public static String selectedChannelId = "";
 
     public void render(float left, float topIn, float right, float bottom, ImGuiIO io) {
         float listWidth = Utility.positiveDiff(right, left);
@@ -86,20 +89,26 @@ public class ChannelListElement extends AbstractElement {
                             - (Fonts.productSansRegular20px.getFontSize() / 2f);
 
                     if (mouseX >= elemLeft && mouseX <= elemRight && mouseY >= elemTop && mouseY <= elemBottom) {
-                        Renderer.BACKGROUND.rect(elemLeft, elemTop, elemRight, elemBottom, Color.BLACK, 3f);
+                        Renderer.BACKGROUND.rect(elemLeft, elemTop, elemRight, elemBottom,
+                                new Color(49, 50, 51, 255), 3f);
+
+                        if (ImGui.isMouseClicked(0)) {
+                            selectedChannelId = channel.getId().get("");
+                            Main.channelContentElement.setApiRequiresRefresh(true);
+                        }
                     }
 
                     switch (channel.getType().get(0)) {
                         // A private channel between two users
                         case ChannelType.DM:
                             UserObject recipient = channel.getRecipients().get(0);
-                            String userProfilePicture = CDNEndpoints.getDefaultUserAvatarUrl(recipient);
+                            String userAvatar = CDNEndpoints.getDefaultUserAvatarUrl(recipient);
                             if (recipient.getAvatar().existsNonNull()) {
-                                userProfilePicture = CDNEndpoints.getUserAvatarUrl(recipient.getId().get("0"),
+                                userAvatar = CDNEndpoints.getUserAvatarUrl(recipient.getId().get("0"),
                                         recipient.getAvatar().get("0"), CDNFileFormat.PNG);
                             }
 
-                            ValidatedValue<Integer> avatar = StaticTextures.getTexture(userProfilePicture,
+                            ValidatedValue<Integer> avatar = StaticTextures.getTexture(userAvatar,
                                     128, 128);
 
                             if (avatar.valid()) {

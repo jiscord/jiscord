@@ -26,3 +26,7 @@ application {
     // Define the main class for the application.
     mainClass.set("site.lifix.jiscord.Main")
 }
+
+tasks.withType(JavaCompile::class) {
+    options.encoding = "UTF-8"
+}

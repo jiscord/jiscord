@@ -7,6 +7,7 @@ import site.lifix.jiscord.api.easeofuse.JsonArrayEOU;
 import site.lifix.jiscord.api.easeofuse.JsonObjectEOU;
 import site.lifix.jiscord.api.objects.channel.ChannelObject;
 import site.lifix.jiscord.api.objects.emoji.EmojiObject;
+import site.lifix.jiscord.api.objects.message.MessageObject;
 import site.lifix.jiscord.utility.Utility;
 
 import java.util.ArrayList;
@@ -129,6 +130,23 @@ public class Requests {
                 return createUrl(new QueryStringParameters(),
                         "v8", "users", "@me", "channels");
             }
+
+            public static String getMessagesInChannel(String channelId, int limit) {
+                return createUrl(new QueryStringParameters()
+                                .add("limit", limit),
+                        "v8", "channels", channelId, "messages");
+            }
+
+            public static String getMessagesInChannel(String channelId, int limit, long before) {
+                return createUrl(new QueryStringParameters()
+                                .add("limit", limit)
+                                .add("before", before),
+                        "v8", "channels", channelId, "messages");
+            }
+
+            public static String getMessagesInChannel(String channelId, int limit, String before) {
+                return getMessagesInChannel(channelId, limit, Long.parseLong(before));
+            }
         }
     }
 
@@ -143,5 +161,35 @@ public class Requests {
         }
 
         return new ArrayList<>();
+    }
+
+    public static List<MessageObject> getMessagesInChannel(String channelId, int limit) {
+        String raw = Utility.urlToStringAuthorized(Endpoints.GET.getMessagesInChannel(channelId, limit));
+
+        if (!raw.isEmpty()) {
+            JsonElement elem = JsonParser.parseString(raw);
+            if (elem.isJsonArray()) {
+                return Utility.mappedJsonArray(elem.getAsJsonArray(), MessageObject::new);
+            }
+        }
+
+        return new ArrayList<>();
+    }
+
+    public static List<MessageObject> getMessagesInChannel(String channelId, int limit, long before) {
+        String raw = Utility.urlToStringAuthorized(Endpoints.GET.getMessagesInChannel(channelId, limit, before));
+
+        if (!raw.isEmpty()) {
+            JsonElement elem = JsonParser.parseString(raw);
+            if (elem.isJsonArray()) {
+                return Utility.mappedJsonArray(elem.getAsJsonArray(), MessageObject::new);
+            }
+        }
+
+        return new ArrayList<>();
+    }
+
+    public static List<MessageObject> getMessagesInChannel(String channelId, int limit, String before) {
+        return getMessagesInChannel(channelId, limit, Long.parseLong(before));
     }
 }

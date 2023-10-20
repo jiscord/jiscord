@@ -6,6 +6,7 @@ import imgui.app.Application;
 import imgui.app.Configuration;
 import imgui.flag.ImGuiInputTextFlags;
 import imgui.type.ImBoolean;
+import imgui.type.ImInt;
 import imgui.type.ImString;
 import site.lifix.jiscord.api.SocketClient;
 import site.lifix.jiscord.api.easeofuse.JsonObjectEOU;
@@ -18,8 +19,9 @@ import site.lifix.jiscord.ui.elements.impl.GuildListElement;
 import site.lifix.jiscord.ui.elements.impl.UserListElement;
 import site.lifix.jiscord.ui.images.ImageCache;
 import site.lifix.jiscord.ui.notifications.NotificationManager;
-import site.lifix.jiscord.utility.CustomImGui;
+import site.lifix.jiscord.utility.app.CustomImGui;
 import site.lifix.jiscord.utility.Utility;
+import site.lifix.jiscord.utility.app.Language;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +34,7 @@ public class Main extends Application {
     public static UserListElement userListElement = new UserListElement();
 
     private static final ImString tokenInput = new ImString();
+    private static final ImInt languageSelected = new ImInt(0);
 
     public static ImBoolean printFullJsonMessages = new ImBoolean(false);
 
@@ -126,6 +129,11 @@ public class Main extends Application {
             }
 
             ImGui.checkbox("Print full JSON data on message", printFullJsonMessages);
+
+            List<String> languages = Utility.copyModified(Language.getAllLanguages(),
+                    (lang) -> lang.getEnglishName() + " (" + lang.getNativeName() + ")");
+
+            ImGui.combo("Language", languageSelected, languages.toArray(new String[0]));
         });
 
         CustomImGui.titledGroup("Login", () -> {

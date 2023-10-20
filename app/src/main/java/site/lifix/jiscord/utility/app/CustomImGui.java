@@ -1,4 +1,4 @@
-package site.lifix.jiscord.utility;
+package site.lifix.jiscord.utility.app;
 
 import imgui.ImGui;
 import site.lifix.jiscord.ui.Fonts;

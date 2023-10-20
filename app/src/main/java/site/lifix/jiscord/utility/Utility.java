@@ -115,6 +115,7 @@ public class Utility {
     }
 
     public static byte[] urlToByteArray(String url) {
+        System.out.println("Requesting bytes from \"" + url + "\"...");
         try {
             return connectionToByteArray(properConnection(new URL(url)));
         } catch (Exception e) {
@@ -125,6 +126,7 @@ public class Utility {
     }
 
     public static byte[] urlToByteArrayAuthorized(String url) {
+        System.out.println("Requesting bytes from \"" + url + "\" (authorized)...");
         try {
             return connectionToByteArray(properConnectionAuthorized(new URL(url)));
         } catch (Exception e) {
@@ -135,6 +137,7 @@ public class Utility {
     }
 
     public static String urlToString(String url) {
+        System.out.println("Requesting string from \"" + url + "\"...");
         try {
             return connectionToString(properConnection(new URL(url)));
         } catch (Exception e) {
@@ -145,6 +148,7 @@ public class Utility {
     }
 
     public static String urlToStringAuthorized(String url) {
+        System.out.println("Requesting string from \"" + url + "\" (authorized)...");
         try {
             return connectionToString(properConnectionAuthorized(new URL(url)));
         } catch (Exception e) {
