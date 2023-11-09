@@ -210,6 +210,10 @@ public class Utility {
         return Math.max(a, b) - Math.min(a, b);
     }
 
+    public static long positiveDiff(long a, long b) {
+        return Math.max(a, b) - Math.min(a, b);
+    }
+
     public static float positiveDiff(float a, float b) {
         return Math.max(a, b) - Math.min(a, b);
     }

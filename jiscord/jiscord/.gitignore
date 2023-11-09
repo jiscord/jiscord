@@ -8,3 +8,5 @@ bin
 # Ignore IDE specific folders
 .idea
 .vscode
+
+imgui.ini
